@@ -47,9 +47,10 @@ public class BetterBankersNoteOverlay extends Overlay {
             return null; // Skip if no target item
         }
 
+        // Get the inventory widget
         Widget inventoryWidget = client.getWidget(InterfaceID.INVENTORY, 0);
-        if (inventoryWidget == null || inventoryWidget.getDynamicChildren() == null) {
-            log.debug("Inventory widget is not visible or has no children. Skipping overlay rendering.");
+        if (inventoryWidget == null || inventoryWidget.isHidden()) {
+            log.debug("Inventory widget is not visible. Skipping overlay rendering.");
             return null; // Skip if inventory is not visible
         }
 
