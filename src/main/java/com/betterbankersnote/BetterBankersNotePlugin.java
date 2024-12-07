@@ -2,24 +2,18 @@ package com.betterbankersnote;
 
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Client;
-import net.runelite.api.GameState;
-import net.runelite.api.Item;
-import net.runelite.api.ItemContainer;
-import net.runelite.api.ItemID;
-import net.runelite.api.InventoryID;
-import net.runelite.api.MenuAction;
+import net.runelite.api.*;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.InterfaceID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
-import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetInfo;
 import com.google.inject.Provides;
 import net.runelite.client.config.ConfigManager;
 
@@ -59,7 +53,6 @@ public class BetterBankersNotePlugin extends Plugin {
     @Override
     protected void startUp() {
         log.info("Starting Better Banker's Note Plugin");
-        log.info("Config: {}", config != null ? "Loaded" : "Missing");
         overlayManager.add(overlay);
         initializeOverlayOnLogin();
     }
@@ -74,17 +67,13 @@ public class BetterBankersNotePlugin extends Plugin {
     private void initializeOverlayOnLogin() {
         clientThread.invokeLater(() -> {
             if (client.getGameState() == GameState.LOGGED_IN) {
-                log.info("Initializing overlay on login.");
                 retryOverlayInitialization(5);
-            } else {
-                log.info("Game state is not LOGGED_IN on start-up.");
             }
         });
     }
 
     private void retryOverlayInitialization(int retries) {
         if (retries <= 0) {
-            log.warn("Overlay initialization failed after retries.");
             overlay.setTargetItemId(-1);
             return;
         }
@@ -93,7 +82,6 @@ public class BetterBankersNotePlugin extends Plugin {
             if (updateOverlayWithCurrentBankersNoteState()) {
                 log.info("Overlay successfully initialized.");
             } else {
-                log.info("Retrying overlay initialization... Remaining retries: {}", retries - 1);
                 retryOverlayInitialization(retries - 1);
             }
         });
@@ -102,7 +90,6 @@ public class BetterBankersNotePlugin extends Plugin {
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
         if (event.getGameState() == GameState.LOGGED_IN) {
-            log.info("Game state changed to LOGGED_IN. Triggering proactive overlay update.");
             retryOverlayInitialization(5);
         }
     }
@@ -110,27 +97,19 @@ public class BetterBankersNotePlugin extends Plugin {
     @Subscribe
     public void onItemContainerChanged(ItemContainerChanged event) {
         if (event.getContainerId() == InventoryID.INVENTORY.getId()) {
-            log.info("Inventory updated. Triggering overlay update.");
             handleDelayedOverlayUpdate();
         }
     }
 
     @Subscribe
     public void onMenuOptionClicked(MenuOptionClicked event) {
-        log.info("MenuOptionClicked: Option={}, Target={}, ItemID={}, Action={}",
-                event.getMenuOption(), event.getMenuTarget(), event.getItemId(), event.getMenuAction());
-
         if (event.getMenuAction() == MenuAction.WIDGET_TARGET_ON_WIDGET && event.getItemId() == ItemID.BANKERS_NOTE) {
-            log.info("Banker's Note used. Menu option: {}", event.getMenuOption());
-
             String menuTarget = event.getMenuTarget();
             int extractedItemId = extractItemIdFromTarget(menuTarget);
 
             if (extractedItemId > 0) {
-                log.info("Immediate update: Setting overlay target to {}", extractedItemId);
                 overlay.setTargetItemId(extractedItemId);
             } else {
-                log.warn("Failed to extract item ID from menu target. Triggering delayed overlay update.");
                 handleDelayedOverlayUpdate();
             }
         }
@@ -138,51 +117,42 @@ public class BetterBankersNotePlugin extends Plugin {
 
     private void handleDelayedOverlayUpdate() {
         clientThread.invokeLater(() -> {
-            log.info("Handling delayed overlay update.");
             if (!updateOverlayWithCurrentBankersNoteState()) {
-                log.warn("Failed to update overlay state. Retrying after delay...");
                 clientThread.invokeLater(this::updateOverlayWithCurrentBankersNoteState);
             }
         });
     }
 
     private boolean updateOverlayWithCurrentBankersNoteState() {
-        ItemContainer inventory = client.getItemContainer(InventoryID.INVENTORY);
-        if (inventory != null) {
-            for (Item item : inventory.getItems()) {
-                if (item != null && item.getId() == ItemID.BANKERS_NOTE) {
-                    String widgetTooltip = getTooltipFromBankersNoteWidget();
-                    if (widgetTooltip != null) {
-                        int itemIdFromTooltip = extractItemIdFromTarget(widgetTooltip);
-                        if (itemIdFromTooltip > 0) {
-                            log.info("Setting overlay from widget tooltip: {}", itemIdFromTooltip);
-                            overlay.setTargetItemId(itemIdFromTooltip);
-                            targetItemId = itemIdFromTooltip;
-                            return true;
-                        }
+        Widget inventoryWidget = client.getWidget(InterfaceID.INVENTORY,0);
+        if (inventoryWidget == null || inventoryWidget.getDynamicChildren() == null) {
+            log.warn("Inventory widget not found.");
+            overlay.setTargetItemId(-1);
+            return false;
+        }
+
+        for (Widget item : inventoryWidget.getDynamicChildren()) {
+            if (item.getItemId() == ItemID.BANKERS_NOTE) {
+                String widgetTooltip = getTooltipFromWidget(item);
+                if (widgetTooltip != null) {
+                    int itemIdFromTooltip = extractItemIdFromTarget(widgetTooltip);
+                    if (itemIdFromTooltip > 0) {
+                        overlay.setTargetItemId(itemIdFromTooltip);
+                        targetItemId = itemIdFromTooltip;
+                        return true;
                     }
                 }
             }
-            log.warn("Banker's Note not found in inventory or no tooltip available.");
-        } else {
-            log.warn("Inventory is null.");
         }
 
-        overlay.setTargetItemId(-1); // Reset if Banker's Note is missing
+        overlay.setTargetItemId(-1); // Reset if no Banker's Note is found
         return false;
     }
 
-    private String getTooltipFromBankersNoteWidget() {
-        if (client.getWidget(WidgetInfo.INVENTORY) != null) {
-            for (Widget widget : client.getWidget(WidgetInfo.INVENTORY).getDynamicChildren()) {
-                if (widget != null && widget.getItemId() == ItemID.BANKERS_NOTE) {
-                    String tooltip = widget.getName();
-                    log.info("Extracted widget tooltip: {}", tooltip);
-                    return tooltip;
-                }
-            }
+    private String getTooltipFromWidget(Widget widget) {
+        if (widget != null) {
+            return widget.getName();
         }
-        log.warn("No tooltip found for Banker's Note in inventory.");
         return null;
     }
 
@@ -191,17 +161,12 @@ public class BetterBankersNotePlugin extends Plugin {
             return -1;
         }
 
-        // Strip out HTML color tags and clean the input
         String cleanedTarget = targetText.replaceAll("<[^>]*>", "").trim();
-        log.info("Extracted target text: {}", cleanedTarget);
-
-        // Prioritize exact matches by checking against item names
         return itemManager.search(cleanedTarget)
                 .stream()
-                .filter(item -> item.getName().equalsIgnoreCase(cleanedTarget)) // Match exact name
+                .filter(item -> item.getName().equalsIgnoreCase(cleanedTarget))
                 .findFirst()
                 .map(item -> item.getId())
-                .orElse(-1); // Fallback if no match
+                .orElse(-1);
     }
-
 }

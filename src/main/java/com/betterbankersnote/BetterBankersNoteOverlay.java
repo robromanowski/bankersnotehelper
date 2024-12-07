@@ -5,9 +5,10 @@ import java.awt.image.BufferedImage;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.ItemID;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.api.widgets.InterfaceID;
+import net.runelite.api.widgets.ComponentID;
+import net.runelite.api.ItemID;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -18,23 +19,21 @@ public class BetterBankersNoteOverlay extends Overlay {
 
     private final Client client;
     private final ItemManager itemManager;
-    private BetterBankersNoteConfig config; // Injected config
+    private BetterBankersNoteConfig config;
     private int targetItemId = -1; // Default: No target item
 
     @Inject
     public BetterBankersNoteOverlay(Client client, ItemManager itemManager, BetterBankersNoteConfig config) {
         this.client = client;
         this.itemManager = itemManager;
-        this.config = config; // Store configuration for outline color
+        this.config = config;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
-
     }
 
     public void setConfig(BetterBankersNoteConfig config) {
         this.config = config;
     }
-
 
     public void setTargetItemId(int itemId) {
         log.info("Overlay target item ID set to: {}", itemId);
@@ -48,9 +47,9 @@ public class BetterBankersNoteOverlay extends Overlay {
             return null; // Skip if no target item
         }
 
-        Widget inventoryWidget = client.getWidget(WidgetInfo.INVENTORY);
-        if (inventoryWidget == null || inventoryWidget.isHidden()) {
-            log.debug("Inventory widget is not visible. Skipping overlay rendering.");
+        Widget inventoryWidget = client.getWidget(InterfaceID.INVENTORY, 0);
+        if (inventoryWidget == null || inventoryWidget.getDynamicChildren() == null) {
+            log.debug("Inventory widget is not visible or has no children. Skipping overlay rendering.");
             return null; // Skip if inventory is not visible
         }
 
@@ -86,8 +85,6 @@ public class BetterBankersNoteOverlay extends Overlay {
 
         return null;
     }
-
-
 
     /**
      * Draws an outline around the non-transparent parts of an image.
