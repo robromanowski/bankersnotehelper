@@ -1,4 +1,4 @@
-package com.betterbankersnote;
+package com.bankersnotehelper;
 
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ import net.runelite.client.config.ConfigManager;
         description = "Displays an icon for the item targeted by the Banker's Note.",
         tags = {"inventory", "note", "overlay"}
 )
-public class BetterBankersNotePlugin extends Plugin {
+public class BankersNoteHelperPlugin extends Plugin {
 
     @Inject
     private Client client;
@@ -32,10 +32,10 @@ public class BetterBankersNotePlugin extends Plugin {
     private OverlayManager overlayManager;
 
     @Inject
-    private BetterBankersNoteConfig config;
+    private BankersNoteHelperConfig config;
 
     @Inject
-    private BetterBankersNoteOverlay overlay;
+    private BankersNoteHelperOverlay overlay;
 
     @Inject
     private ItemManager itemManager;
@@ -44,8 +44,8 @@ public class BetterBankersNotePlugin extends Plugin {
     private ClientThread clientThread;
 
     @Provides
-    BetterBankersNoteConfig provideConfig(ConfigManager configManager) {
-        return configManager.getConfig(BetterBankersNoteConfig.class);
+    BankersNoteHelperConfig provideConfig(ConfigManager configManager) {
+        return configManager.getConfig(BankersNoteHelperConfig.class);
     }
 
     private int targetItemId = -1;

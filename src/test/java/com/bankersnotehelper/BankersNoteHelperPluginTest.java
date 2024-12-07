@@ -1,13 +1,13 @@
-package com.betterbankersnote;
+package com.bankersnotehelper;
 
 import net.runelite.client.RuneLite;
 import net.runelite.client.externalplugins.ExternalPluginManager;
 
-public class BetterBankersNotePluginTest
+public class BankersNoteHelperPluginTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(BetterBankersNotePlugin.class);
+		ExternalPluginManager.loadBuiltin(BankersNoteHelperPlugin.class);
 		RuneLite.main(args);
 	}
 }

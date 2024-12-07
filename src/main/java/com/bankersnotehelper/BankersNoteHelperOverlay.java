@@ -1,4 +1,4 @@
-package com.betterbankersnote;
+package com.bankersnotehelper;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.InterfaceID;
-import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.ItemID;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.Overlay;
@@ -15,15 +14,15 @@ import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 
 @Slf4j
-public class BetterBankersNoteOverlay extends Overlay {
+public class BankersNoteHelperOverlay extends Overlay {
 
     private final Client client;
     private final ItemManager itemManager;
-    private BetterBankersNoteConfig config;
+    private BankersNoteHelperConfig config;
     private int targetItemId = -1; // Default: No target item
 
     @Inject
-    public BetterBankersNoteOverlay(Client client, ItemManager itemManager, BetterBankersNoteConfig config) {
+    public BankersNoteHelperOverlay(Client client, ItemManager itemManager, BankersNoteHelperConfig config) {
         this.client = client;
         this.itemManager = itemManager;
         this.config = config;
@@ -31,7 +30,7 @@ public class BetterBankersNoteOverlay extends Overlay {
         setLayer(OverlayLayer.ABOVE_WIDGETS);
     }
 
-    public void setConfig(BetterBankersNoteConfig config) {
+    public void setConfig(BankersNoteHelperConfig config) {
         this.config = config;
     }
 
