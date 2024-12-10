@@ -35,7 +35,7 @@ public class BankersNoteHelperOverlay extends Overlay {
     }
 
     public void setTargetItemId(int itemId) {
-        log.info("Overlay target item ID set to: {}", itemId);
+        log.debug("Overlay target item ID set to: {}", itemId);
         this.targetItemId = itemId;
     }
 

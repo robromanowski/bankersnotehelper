@@ -126,7 +126,7 @@ public class BankersNoteHelperPlugin extends Plugin {
     private boolean updateOverlayWithCurrentBankersNoteState() {
         Widget inventoryWidget = client.getWidget(InterfaceID.INVENTORY,0);
         if (inventoryWidget == null || inventoryWidget.getDynamicChildren() == null) {
-            log.warn("Inventory widget not found.");
+            log.debug("Inventory widget not found.");
             overlay.setTargetItemId(-1);
             return false;
         }
